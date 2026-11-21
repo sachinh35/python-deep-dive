@@ -97,6 +97,58 @@ actual values of elements.
 
 So that's why we jump ahead 24 bytes before reading the pointers and memory locations.
 
+### 3. Why does Python store pointers to elements? Why not store the actual elements directly?
+
+There are 3 important reason as to why Python behaves this way. 
+
+**1. Elements can be any type and any size**
+
+A list can hold `[1, "hello", 3.5, [1, 2], some_object]`, and those objects are all different sizes. 1 is 28 bytes, 
+"test" is 45, a 1,000-character string is 1,041.
+
+If the objects were stored inside the list, every slot would be a different width. To find t[500], Python would have to 
+walk through the first 500 to see where each one ends, which makes indexing O(n) instead of O(1). 
+
+**2. Objects are shared**
+
+This is another important property of Python. Consider teh following example:
+```python
+inner = [1, 2]
+outer = [inner, inner]
+inner.append(3)
+
+print(outer)
+
+# Output
+# [[1, 2, 3], [1, 2, 3]]: both slots point to the same list
+```
+
+This only works because `outer` holds pointers. If `outer` stored copies of `inner` inside itself, there would be three 
+separate lists, and the `append()` wouldn't show up in `outer`.
+
+**3. Objects can change size**
+
+Some objects grow while they're alive: an int grows as the number gets bigger (10**100 was 72 bytes), and a list 
+stored inside another list can grow too. If an object were stored inside its container, growing it would mean shifting 
+everything after it. As a separate object reached through a pointer, it can grow without affecting the container.
+
+### 4. Is there a way to store values directly in lists instead of pointers to elements?
+
+If all your elements are the same simple type, Python has containers that store raw values contiguously, 
+with no pointers and no per-element objects:
+```python
+from array import array
+import numpy as np
+
+a = array("q", range(1_000_000))     # 8 bytes per number, stored side by side
+n = np.arange(1_000_000)             # same idea, plus fast math on the whole array
+```
+These use about 8 MB for a million integers instead of roughly 36 MB, and they're much faster for numeric work. 
+The trade-off is that every element must be the same fixed-size type, which is exactly the limit that pointers avoid.
+
+Lists choose pointers so they can hold anything, share objects and resize safely. `array`` and `NumPy` choose raw values 
+for compact, fast numbers of one type.
+
 ## Memory usage
 
 Lists in Python can be considered as a dynamic array. This means that the size of the list can change on the fly, you 
