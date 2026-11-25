@@ -328,3 +328,8 @@ illustrate the time it would take for Python to resize and move long lists, if i
 
 The point to remember is that dynamic resizing property of a list with large elements can make your code non-performant, 
 especially when dealing with use cases such as big data processing.  
+
+## References
+
+- *High Performance Python*, 3rd ed., by Micha Gorelick and Ian Ozsvald (O’Reilly). Copyright 2025 Micha Gorelick and
+  Ian Ozsvald, 978-1-098-16596-3.
